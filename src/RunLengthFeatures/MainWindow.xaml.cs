@@ -4,9 +4,11 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using RunLengthFeatures.Enums;
+using RunLengthFeatures.Extensions;
 
 namespace RunLengthFeatures
 {
@@ -108,8 +110,9 @@ namespace RunLengthFeatures
 			try
 			{
 				var image = new BitmapImage(new Uri(dialog.FileName));
+				var grayscaleImage = image.ToGrayscale();
 				ImageNameTextBlock.Text = Path.GetFileNameWithoutExtension(dialog.FileName);
-				ProcessedImage.Source = image;
+				ProcessedImage.Source = grayscaleImage;
 			}
 			catch (Exception)
 			{
