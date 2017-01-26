@@ -6,52 +6,83 @@
         xmlns:local="clr-namespace:RunLengthFeatures"
         mc:Ignorable="d"
 		Background="Black"
-        Title="Run Length Features" Height="900" Width="1600"
-		Loaded="MainWindow_OnLoaded">
-    <Grid>
-        <Grid.RowDefinitions>
-			<RowDefinition Height="*"/>
+        Title="Run Length Features by Wojciech Kudirka &amp; Konrad Jasiński (2017)" 
+		Height="1000" 
+		Width="1400"
+		ResizeMode="NoResize"
+		Loaded="MainWindow_OnLoaded"
+		Closed="MainWindow_OnClosed">
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
+
+		<Menu Grid.Row="0" 
+			  DockPanel.Dock="Top" 
+			  Height="30">
+			<MenuItem Header="_Plik" 
+					  Height="30" 
+					  FontSize="14">
+				<MenuItem Header="_Wczytaj..." 
+						  Click="MenuItem_LoadImage" 
+						  FontSize="14"/> 
+			</MenuItem>
+		</Menu>
 		
-		<Grid Grid.Row="0" 
+		<Grid Grid.Row="1" 
 			  Margin="10">
-			<Image Source="http://cdn1-www.craveonline.com/assets/uploads/gallery/google-earthview/google-earth-view-6233.jpg"/>
-			<Canvas>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+
+			<TextBlock Grid.Row="0"
+					   Margin="10"
+					   Name="ImageNameTextBlock"
+					   Foreground="AliceBlue"
+					   FontSize="20"
+					   Text="Wczytaj zdjęcie, aby rozpocząć..."
+					   VerticalAlignment="Center"
+					   HorizontalAlignment="Center"/>
+			<Border Grid.Row="1"
+					Background="LightSlateGray"
+					Width="1280"
+					Height="720">
+				<Image 
+					Name="ProcessedImage"
+					Width="1280"
+					Height="720"/>
+			</Border>
+			
+			<Canvas Grid.Row="1"
+					Name="OverlayCanvas"
+					Width="1280"
+					Height="720">
 				<Rectangle Name="HoverRectangle"
 					Fill="Aqua" 
 					Opacity="0.35"
 					Canvas.Left="0"
 					Canvas.Top="0"
-					Width="300" 
-					Height="300"/>
+					Width="280" 
+					Height="280"/>
 			</Canvas>
 		</Grid>
 
-		<Grid Grid.Row="1"
+		<Grid Grid.Row="2"
 			  Margin="10">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="*"/>
-			</Grid.ColumnDefinitions>
-			
 			<TextBlock Grid.Column="0"
-					   Text="wykres1"
-					   FontSize="30"
-					   Foreground="AliceBlue"
-					   VerticalAlignment="Center"
-					   HorizontalAlignment="Center"/>
-
-			<TextBlock Grid.Column="1"
-					   Text="wykres2"
-					   FontSize="30"
+					   Text="wykres"
+					   FontSize="20"
 					   Foreground="AliceBlue"
 					   VerticalAlignment="Center"
 					   HorizontalAlignment="Center"/>
 		</Grid>
 		
-		<Grid Grid.Row="2"
+		<Grid Grid.Row="3"
 			  Margin="10">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*"/>
@@ -62,25 +93,25 @@
 			
 			<TextBlock Grid.Column="0"
 					   Text="statysyka 1"
-					   FontSize="30"
+					   FontSize="20"
 					   Foreground="AliceBlue"
 					   VerticalAlignment="Center"
 					   HorizontalAlignment="Center"/>
 			<TextBlock Grid.Column="1"
 					   Text="statysyka 2"
-					   FontSize="30"
+					   FontSize="20"
 					   Foreground="AliceBlue"
 					   VerticalAlignment="Center"
 					   HorizontalAlignment="Center"/>
 			<TextBlock Grid.Column="2"
 					   Text="statysyka 3"
-					   FontSize="30"
+					   FontSize="20"
 					   Foreground="AliceBlue"
 					   VerticalAlignment="Center"
 					   HorizontalAlignment="Center"/>
 			<TextBlock Grid.Column="3"
 					   Text="statysyka 4"
-					   FontSize="30"
+					   FontSize="20"
 					   Foreground="AliceBlue"
 					   VerticalAlignment="Center"
 					   HorizontalAlignment="Center"/>

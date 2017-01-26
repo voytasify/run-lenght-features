@@ -1,22 +1,33 @@
-﻿using System.Timers;
+﻿using System;
+using System.IO;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 using RunLengthFeatures.Enums;
 
 namespace RunLengthFeatures
 {
 	public partial class MainWindow
 	{
+		private readonly Timer _timer;
 		private Direction _direction;
+
+		private double CanvasWidth => OverlayCanvas.ActualWidth;
+		private double CanvasHeight => OverlayCanvas.ActualHeight;
+
+		private double RectangleWidth => HoverRectangle.ActualWidth;
+		private double RectangleHeight => HoverRectangle.ActualHeight;
 
 		public MainWindow()
 		{
 			InitializeComponent();
 
-			var timer = new Timer(1);
-			timer.Elapsed += TimerOnElapsed;
-			timer.Start();
+			_timer = new Timer(1);
+			_timer.Elapsed += TimerOnElapsed;
+			_timer.Start();
 		}
 
 		private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -54,24 +65,56 @@ namespace RunLengthFeatures
 		{
 			Dispatcher.Invoke(() =>
 			{
-				var step = 4;
+				var step = 5;
 
 				switch (_direction)
 				{
 					case Direction.Up:
-						Canvas.SetTop(HoverRectangle, Canvas.GetTop(HoverRectangle) - step);
+						var top = Math.Max(Canvas.GetTop(HoverRectangle) - step, 0);
+						Canvas.SetTop(HoverRectangle, top);
 						break;
 					case Direction.Down:
-						Canvas.SetTop(HoverRectangle, Canvas.GetTop(HoverRectangle) + step);
+						var down = Math.Min(Canvas.GetTop(HoverRectangle) + step, CanvasHeight - RectangleHeight);
+						Canvas.SetTop(HoverRectangle, down);
 						break;
 					case Direction.Left:
-						Canvas.SetLeft(HoverRectangle, Canvas.GetLeft(HoverRectangle) - step);
+						var left = Math.Max(Canvas.GetLeft(HoverRectangle) - step, 0);
+						Canvas.SetLeft(HoverRectangle, left);
 						break;
 					case Direction.Right:
-						Canvas.SetLeft(HoverRectangle, Canvas.GetLeft(HoverRectangle) + step);
+						var right = Math.Min(Canvas.GetLeft(HoverRectangle) + step, CanvasWidth - RectangleWidth);
+						Canvas.SetLeft(HoverRectangle, right);
 						break;
 				}
 			});
+		}
+
+		private void MainWindow_OnClosed(object sender, EventArgs e)
+		{
+			_timer.Stop();
+		}
+
+		private void MenuItem_LoadImage(object sender, RoutedEventArgs e)
+		{
+			var dialog = new OpenFileDialog
+			{
+				DefaultExt = ".jpeg",
+				Filter = "obrazy (*.jpeg, *.png, *.jpg)|*.jpeg;*.png;*.jpg"
+			};
+
+			if (dialog.ShowDialog() != true)
+				return;
+
+			try
+			{
+				var image = new BitmapImage(new Uri(dialog.FileName));
+				ImageNameTextBlock.Text = Path.GetFileNameWithoutExtension(dialog.FileName);
+				ProcessedImage.Source = image;
+			}
+			catch (Exception)
+			{
+				MessageBox.Show("Nie udało się wczytać obrazu :(", "Ups..", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
 		}
 	}
 }
