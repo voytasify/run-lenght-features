@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,8 +9,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
 using RunLengthFeatures.Enums;
 using RunLengthFeatures.Extensions;
+using RunLengthFeatures.Services;
+using Rect = OpenCvSharp.Rect;
 
 namespace RunLengthFeatures
 {
@@ -24,6 +30,7 @@ namespace RunLengthFeatures
 		private double RectangleHeight => HoverRectangle.ActualHeight;
 
 		public static readonly int ShadesOfGray = 8;
+		private RunLengthProvider _runLengthProvider;
 
 		public MainWindow()
 		{
@@ -32,6 +39,7 @@ namespace RunLengthFeatures
 			_timer = new Timer(1);
 			_timer.Elapsed += TimerOnElapsed;
 			_timer.Start();
+			_runLengthProvider = new RunLengthProvider();
 		}
 
 		private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -120,6 +128,32 @@ namespace RunLengthFeatures
 			{
 				MessageBox.Show("Nie udało się wczytać obrazu :(", "Ups..", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
+		}
+
+		private Rect GetHoverRectangleRect()
+		{
+				return new Rect((int) Canvas.GetLeft(HoverRectangle), (int) Canvas.GetTop(HoverRectangle),
+					(int) RectangleWidth, (int) RectangleHeight);
+		}
+
+		private BitmapImage GetCurrentImage()
+		{
+			var img = ProcessedImage.Source as BitmapImage;
+			if (img == null)
+			{
+				MessageBox.Show("Najpierw wybierz obraz", "Ups..", MessageBoxButton.OK, MessageBoxImage.Error);
+				return null;
+			}
+			return img;
+		}
+
+		private void Stat1Clicked(object sender, MouseButtonEventArgs e)
+		{
+			var image = GetCurrentImage();
+			if(image == null)
+				return;
+
+			var runLengths = _runLengthProvider.ComputeRunLengths(image, GetHoverRectangleRect());
 		}
 	}
 }

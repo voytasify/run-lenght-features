@@ -96,7 +96,8 @@
 					   FontSize="20"
 					   Foreground="AliceBlue"
 					   VerticalAlignment="Center"
-					   HorizontalAlignment="Center"/>
+					   HorizontalAlignment="Center"
+					   MouseUp="Stat1Clicked"/>
 			<TextBlock Grid.Column="1"
 					   Text="statysyka 2"
 					   FontSize="20"
