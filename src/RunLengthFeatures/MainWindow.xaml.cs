@@ -35,6 +35,8 @@ namespace RunLengthFeatures
 		private readonly RunLengthProvider _runLengthProvider;
 		private readonly StatisticsCalculator _calculator;
 
+		private bool _chartOpen;
+
 		public ICommand ComputeStatsCommand { get; }
 
 		public MainWindow()
@@ -161,33 +163,43 @@ namespace RunLengthFeatures
 				return;
 
 			ProgressBar.Visibility = Visibility.Visible;
-			var stat1 = string.Empty;
-			var stat2 = string.Empty;
-			var stat3 = string.Empty;
-			var stat4 = string.Empty;
+
+			var shortPrimitiveEmphasis = string.Empty;
+			var longPrimitiveEmphasis = string.Empty;
+			var grayLevelUniformity = string.Empty;
+			var primitiveLengthUniformity = string.Empty;
+
 			var overlayRect = GetHoverRectangleRect();
 			await Task.Run(() =>
 			{
 				var runLengths = _runLengthProvider.ComputeRunLengths(image, overlayRect).ToList();
-				stat1 = _calculator.ShortPrimitiveEmphasis(runLengths).ToString(NumberDisplayFormat);
-				stat2 = _calculator.LongPrimitiveEmphasis(runLengths).ToString(NumberDisplayFormat);
-				stat3 = _calculator.GrayLevelUniformity(runLengths).ToString(NumberDisplayFormat);
-				stat4 = _calculator.PrimitiveLengthUniformity(runLengths).ToString(NumberDisplayFormat);
+				shortPrimitiveEmphasis = _calculator.ShortPrimitiveEmphasis(runLengths).ToString(NumberDisplayFormat);
+				longPrimitiveEmphasis = _calculator.LongPrimitiveEmphasis(runLengths).ToString(NumberDisplayFormat);
+				grayLevelUniformity = _calculator.GrayLevelUniformity(runLengths).ToString(NumberDisplayFormat);
+				primitiveLengthUniformity = _calculator.PrimitiveLengthUniformity(runLengths).ToString(NumberDisplayFormat);
 			});
+
 			ProgressBar.Visibility = Visibility.Hidden;
-			Stat1.Text = stat1;
-			Stat2.Text = stat2;
-			Stat3.Text = stat3;
-			Stat4.Text = stat4;
+
+			ShortPrimitiveEmphasis.Text = shortPrimitiveEmphasis;
+			LongPrimitiveEmphasis.Text = longPrimitiveEmphasis;
+			GrayLevelUniformity.Text = grayLevelUniformity;
+			PrimitiveLengthUniformity.Text = primitiveLengthUniformity;
 		}
 
 		private void OnChartClicked(object sender, MouseButtonEventArgs e)
 		{
+			if (_chartOpen)
+			{
+				GnuPlot.Close();
+				ChartTextBlock.Text = "Pokaż wykres";
+				_chartOpen = false;
+				return;
+			}
+
 			var image = GetCurrentImage();
 			if (image == null)
 				return;
-
-			ProgressBar.Visibility = Visibility.Visible;
 
 			var runs = _runLengthProvider.ComputeRunLengths(image, GetHoverRectangleRect());
 			var shades = runs.Select(b => b.Shade).Distinct().ToList();
@@ -234,7 +246,9 @@ namespace RunLengthFeatures
 			GnuPlot.Set("dgrid3d 50,50 qnorm 2");
 			GnuPlot.SPlot(runLengths, grayLevels, numberOfRuns, "notitle with lines");
 
-			ProgressBar.Visibility = Visibility.Hidden;
+			ChartTextBlock.Text = "Zamknij wykres";
+			_chartOpen = true;
 		}
+
 	}
 }
