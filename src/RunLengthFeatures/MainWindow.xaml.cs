@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using AwokeKnowing.GnuplotCSharp;
 using Microsoft.Win32;
@@ -29,24 +29,30 @@ namespace RunLengthFeatures
 		private double RectangleWidth => HoverRectangle.ActualWidth;
 		private double RectangleHeight => HoverRectangle.ActualHeight;
 
+		private const string NumberDisplayFormat = "0.0000";
 		public static readonly int ShadesOfGray = 8;
+
 		private readonly RunLengthProvider _runLengthProvider;
+		private readonly StatisticsCalculator _calculator;
+
+		public ICommand ComputeStatsCommand { get; }
 
 		public MainWindow()
 		{
 			InitializeComponent();
-
 			_timer = new Timer(1);
 			_timer.Elapsed += TimerOnElapsed;
 			_timer.Start();
 
 			_runLengthProvider = new RunLengthProvider();
+			_calculator = new StatisticsCalculator();
 		}
 
 		private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
 		{
 			KeyDown += OnKeyDown;
 			KeyUp += OnKeyUp;
+			ProgressBar.Visibility = Visibility.Hidden;
 		}
 
 		private void OnKeyDown(object sender, KeyEventArgs e)
@@ -127,7 +133,7 @@ namespace RunLengthFeatures
 			}
 			catch (Exception)
 			{
-				MessageBox.Show("Nie udało się wczytać obrazu :(", "Ups..", MessageBoxButton.OK, MessageBoxImage.Error);
+				MessageBox.Show("Nie udało się wczytać zdjęcia :(", "Ups..", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 		}
 
@@ -142,19 +148,37 @@ namespace RunLengthFeatures
 			var img = ProcessedImage.Source as BitmapImage;
 			if (img == null)
 			{
-				MessageBox.Show("Najpierw wybierz obraz", "Ups..", MessageBoxButton.OK, MessageBoxImage.Error);
+				MessageBox.Show("Najpierw wczytaj zdjęcie", "Ups..", MessageBoxButton.OK, MessageBoxImage.Error);
 				return null;
 			}
 			return img;
 		}
 
-		private void Stat1Clicked(object sender, MouseButtonEventArgs e)
+		private async void ComputeStats(object sender, MouseButtonEventArgs e)
 		{
 			var image = GetCurrentImage();
 			if (image == null)
 				return;
 
-			var runLengths = _runLengthProvider.ComputeRunLengths(image, GetHoverRectangleRect());
+			ProgressBar.Visibility = Visibility.Visible;
+			var stat1 = string.Empty;
+			var stat2 = string.Empty;
+			var stat3 = string.Empty;
+			var stat4 = string.Empty;
+			var overlayRect = GetHoverRectangleRect();
+			await Task.Run(() =>
+			{
+				var runLengths = _runLengthProvider.ComputeRunLengths(image, overlayRect).ToList();
+				stat1 = _calculator.ShortPrimitiveEmphasis(runLengths).ToString(NumberDisplayFormat);
+				stat2 = _calculator.LongPrimitiveEmphasis(runLengths).ToString(NumberDisplayFormat);
+				stat3 = _calculator.GrayLevelUniformity(runLengths).ToString(NumberDisplayFormat);
+				stat4 = _calculator.PrimitiveLengthUniformity(runLengths).ToString(NumberDisplayFormat);
+			});
+			ProgressBar.Visibility = Visibility.Hidden;
+			Stat1.Text = stat1;
+			Stat2.Text = stat2;
+			Stat3.Text = stat3;
+			Stat4.Text = stat4;
 		}
 
 		private void OnChartClicked(object sender, MouseButtonEventArgs e)
@@ -163,8 +187,9 @@ namespace RunLengthFeatures
 			if (image == null)
 				return;
 
-			var runs = _runLengthProvider.ComputeRunLengths(image, GetHoverRectangleRect());
+			ProgressBar.Visibility = Visibility.Visible;
 
+			var runs = _runLengthProvider.ComputeRunLengths(image, GetHoverRectangleRect());
 			var shades = runs.Select(b => b.Shade).Distinct().ToList();
 
 			var dict = new Dictionary<string, Rlf>();
@@ -208,6 +233,8 @@ namespace RunLengthFeatures
 			GnuPlot.Set("hidden3d");
 			GnuPlot.Set("dgrid3d 50,50 qnorm 2");
 			GnuPlot.SPlot(runLengths, grayLevels, numberOfRuns, "notitle with lines");
+
+			ProgressBar.Visibility = Visibility.Hidden;
 		}
 	}
 }
