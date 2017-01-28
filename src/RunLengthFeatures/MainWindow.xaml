@@ -79,7 +79,8 @@
 					   FontSize="20"
 					   Foreground="AliceBlue"
 					   VerticalAlignment="Center"
-					   HorizontalAlignment="Center"/>
+					   HorizontalAlignment="Center"
+					   MouseUp="OnChartClicked"/>
 		</Grid>
 		
 		<Grid Grid.Row="3"

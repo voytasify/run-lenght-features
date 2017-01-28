@@ -6,13 +6,13 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
+using AwokeKnowing.GnuplotCSharp;
 using Microsoft.Win32;
-using OpenCvSharp;
-using OpenCvSharp.Extensions;
 using RunLengthFeatures.Enums;
 using RunLengthFeatures.Extensions;
+using RunLengthFeatures.Models;
 using RunLengthFeatures.Services;
 using Rect = OpenCvSharp.Rect;
 
@@ -30,7 +30,7 @@ namespace RunLengthFeatures
 		private double RectangleHeight => HoverRectangle.ActualHeight;
 
 		public static readonly int ShadesOfGray = 8;
-		private RunLengthProvider _runLengthProvider;
+		private readonly RunLengthProvider _runLengthProvider;
 
 		public MainWindow()
 		{
@@ -39,6 +39,7 @@ namespace RunLengthFeatures
 			_timer = new Timer(1);
 			_timer.Elapsed += TimerOnElapsed;
 			_timer.Start();
+
 			_runLengthProvider = new RunLengthProvider();
 		}
 
@@ -69,7 +70,7 @@ namespace RunLengthFeatures
 
 		private void OnKeyUp(object sender, KeyEventArgs e)
 		{
-			if(e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right)
+			if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right)
 				_direction = Direction.None;
 		}
 
@@ -132,8 +133,8 @@ namespace RunLengthFeatures
 
 		private Rect GetHoverRectangleRect()
 		{
-				return new Rect((int) Canvas.GetLeft(HoverRectangle), (int) Canvas.GetTop(HoverRectangle),
-					(int) RectangleWidth, (int) RectangleHeight);
+			return new Rect((int)Canvas.GetLeft(HoverRectangle), (int)Canvas.GetTop(HoverRectangle),
+				(int)RectangleWidth, (int)RectangleHeight);
 		}
 
 		private BitmapImage GetCurrentImage()
@@ -150,10 +151,63 @@ namespace RunLengthFeatures
 		private void Stat1Clicked(object sender, MouseButtonEventArgs e)
 		{
 			var image = GetCurrentImage();
-			if(image == null)
+			if (image == null)
 				return;
 
 			var runLengths = _runLengthProvider.ComputeRunLengths(image, GetHoverRectangleRect());
+		}
+
+		private void OnChartClicked(object sender, MouseButtonEventArgs e)
+		{
+			var image = GetCurrentImage();
+			if (image == null)
+				return;
+
+			var runs = _runLengthProvider.ComputeRunLengths(image, GetHoverRectangleRect());
+
+			var shades = runs.Select(b => b.Shade).Distinct().ToList();
+
+			var dict = new Dictionary<string, Rlf>();
+			foreach (var run in runs)
+			{
+				var key = run.ToString();
+				if (dict.ContainsKey(key))
+				{
+					dict[key].HowMuch++;
+				}
+				else
+				{
+					dict.Add(key, new Rlf
+					{
+						Shade = shades.IndexOf(run.Shade),
+						Length = run.Length
+					});
+				}
+			}
+
+
+			var runLengths = new double[dict.Count];
+			var grayLevels = new double[dict.Count];
+			var numberOfRuns = new double[dict.Count];
+
+			var i = 0;
+			foreach (var kvp in dict)
+			{
+				runLengths[i] = kvp.Value.Length;
+				numberOfRuns[i] = kvp.Value.HowMuch;
+				grayLevels[i] = kvp.Value.Shade;
+
+				++i;
+			}
+
+			GnuPlot.Set("xlabel \"Run length\"");
+			GnuPlot.Set("ylabel \"Gray level\"");
+			GnuPlot.Set("zlabel \"Number of runs\"");
+			GnuPlot.Set("title \"Run Length Features Chart\"");
+
+			GnuPlot.Set("hidden3d");
+			GnuPlot.Set("dgrid3d 50,50 qnorm 2");
+			GnuPlot.SPlot(runLengths, grayLevels, numberOfRuns, "notitle with lines");
 		}
 	}
 }

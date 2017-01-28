@@ -2,6 +2,7 @@
 using System.Windows.Media.Imaging;
 using OpenCvSharp;
 using RunLengthFeatures.Extensions;
+using RunLengthFeatures.Models;
 
 namespace RunLengthFeatures.Services
 {
@@ -18,7 +19,7 @@ namespace RunLengthFeatures.Services
 					var currentRun = new RunLength();
 					for (var j = 0; j < submatrix.Cols; j++)
 					{
-						var pixelColor = (int) submatrix.At<char>(i, j);
+						var pixelColor = (int)submatrix.At<char>(i, j);
 						if (currentRun.Length == 0)
 						{
 							currentRun.Length++;
@@ -29,7 +30,7 @@ namespace RunLengthFeatures.Services
 						else
 						{
 							result.Add(currentRun);
-							currentRun = new RunLength {Length = 1, Shade = pixelColor};
+							currentRun = new RunLength { Length = 1, Shade = pixelColor };
 						}
 					}
 					result.Add(currentRun);
