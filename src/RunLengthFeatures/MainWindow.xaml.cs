@@ -23,6 +23,8 @@ namespace RunLengthFeatures
 		private double RectangleWidth => HoverRectangle.ActualWidth;
 		private double RectangleHeight => HoverRectangle.ActualHeight;
 
+		public static readonly int ShadesOfGray = 8;
+
 		public MainWindow()
 		{
 			InitializeComponent();
