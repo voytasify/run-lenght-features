@@ -14,14 +14,16 @@ namespace RunLengthFeatures.Extensions
 			using (var ms = new MemoryStream())
 			{
 				encoder.Save(ms);
-				var grayscaleMat = Mat.FromStream(ms, ImreadModes.GrayScale);
-				PerformThresholding(grayscaleMat);
-				var grayscaleImgStream = grayscaleMat.ToMemoryStream();
-				var result = new BitmapImage();
-				result.BeginInit();
-				result.StreamSource = grayscaleImgStream;
-				result.EndInit();
-				return result;
+				using (var grayscaleMat = Mat.FromStream(ms, ImreadModes.GrayScale))
+				{
+					PerformThresholding(grayscaleMat);
+					var grayscaleImgStream = grayscaleMat.ToMemoryStream();
+					var result = new BitmapImage();
+					result.BeginInit();
+					result.StreamSource = grayscaleImgStream;
+					result.EndInit();
+					return result;
+				}
 			}
 		}
 
