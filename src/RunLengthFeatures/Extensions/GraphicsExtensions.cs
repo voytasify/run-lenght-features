@@ -14,7 +14,9 @@ namespace RunLengthFeatures.Extensions
 			using (var ms = new MemoryStream())
 			{
 				encoder.Save(ms);
-				return Mat.FromStream(ms, ImreadModes.GrayScale);
+				var newMat =  Mat.FromStream(ms, ImreadModes.GrayScale);
+				PerformThresholding(newMat);
+				return newMat;
 			}
 		}
 
@@ -22,7 +24,6 @@ namespace RunLengthFeatures.Extensions
 		{
 			using (var grayscaleMat = bmp.ToGrayscaleMat())
 			{
-				PerformThresholding(grayscaleMat);
 				var grayscaleImgStream = grayscaleMat.ToMemoryStream();
 				var result = new BitmapImage();
 				result.BeginInit();
@@ -39,9 +40,14 @@ namespace RunLengthFeatures.Extensions
 				for (var j = 0; j < grayscaleMat.Cols; j++)
 				{
 					var currentPixelValue = (int)grayscaleMat.At<char>(i, j);
+					if (currentPixelValue >= 255d)
+					{
+						grayscaleMat.Set(i, j, (char)255);
+						continue;
+					}
 					for (var multiplier = 1d; multiplier <= MainWindow.ShadesOfGray; multiplier ++)
 					{
-						var currentThreshold = (int) Math.Round(multiplier/MainWindow.ShadesOfGray *255d);
+						var currentThreshold = (int) Math.Ceiling(multiplier/MainWindow.ShadesOfGray *255d);
 						if (currentPixelValue < currentThreshold)
 						{
 							grayscaleMat.Set(i, j, (char)currentThreshold);
