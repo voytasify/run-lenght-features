@@ -78,6 +78,7 @@
     </ApplicationDefinition>
     <Compile Include="RunLength.cs" />
     <Compile Include="Services\RunLengthProvider.cs" />
+    <Compile Include="Services\StatisticsCalculator.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
