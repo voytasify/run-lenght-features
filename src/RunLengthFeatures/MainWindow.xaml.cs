@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -29,8 +31,13 @@ namespace RunLengthFeatures
 		private double RectangleWidth => HoverRectangle.ActualWidth;
 		private double RectangleHeight => HoverRectangle.ActualHeight;
 
-		public static readonly int ShadesOfGray = 8;
-		private RunLengthProvider _runLengthProvider;
+		private const string NumberDisplayFormat = "0.0000";
+        public static readonly int ShadesOfGray = 8;
+
+		private readonly RunLengthProvider _runLengthProvider;
+		private readonly StatisticsCalculator _calculator;
+
+		public ICommand ComputeStatsCommand { get; }
 
 		public MainWindow()
 		{
@@ -40,6 +47,7 @@ namespace RunLengthFeatures
 			_timer.Elapsed += TimerOnElapsed;
 			_timer.Start();
 			_runLengthProvider = new RunLengthProvider();
+			_calculator = new StatisticsCalculator();
 		}
 
 		private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -147,13 +155,29 @@ namespace RunLengthFeatures
 			return img;
 		}
 
-		private void Stat1Clicked(object sender, MouseButtonEventArgs e)
+		private async void ComputeStats(object sender, MouseButtonEventArgs e)
 		{
 			var image = GetCurrentImage();
 			if(image == null)
 				return;
 
-			var runLengths = _runLengthProvider.ComputeRunLengths(image, GetHoverRectangleRect());
+			var stat1 = string.Empty;
+			var stat2 = string.Empty;
+			var stat3 = string.Empty;
+			var stat4 = string.Empty;
+			var overlayRect = GetHoverRectangleRect();
+            await Task.Run(() =>
+			{
+				var runLengths = _runLengthProvider.ComputeRunLengths(image, overlayRect).ToList();
+				stat1 = _calculator.ShortPrimitiveEmphasis(runLengths).ToString(NumberDisplayFormat);
+				stat2 = _calculator.LongPrimitiveEmphasis(runLengths).ToString(NumberDisplayFormat);
+				stat3 = _calculator.GrayLevelUniformity(runLengths).ToString(NumberDisplayFormat);
+				stat4 = _calculator.PrimitiveLengthUniformity(runLengths).ToString(NumberDisplayFormat);
+			});
+			Stat1.Text = stat1;
+			Stat2.Text = stat2;
+			Stat3.Text = stat3;
+			Stat4.Text = stat4;
 		}
 	}
 }
