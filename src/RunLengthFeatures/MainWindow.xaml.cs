@@ -42,7 +42,6 @@ namespace RunLengthFeatures
 		public MainWindow()
 		{
 			InitializeComponent();
-
 			_timer = new Timer(1);
 			_timer.Elapsed += TimerOnElapsed;
 			_timer.Start();
@@ -54,6 +53,7 @@ namespace RunLengthFeatures
 		{
 			KeyDown += OnKeyDown;
 			KeyUp += OnKeyUp;
+			ProgressBar.Visibility = Visibility.Hidden;
 		}
 
 		private void OnKeyDown(object sender, KeyEventArgs e)
@@ -161,6 +161,7 @@ namespace RunLengthFeatures
 			if(image == null)
 				return;
 
+			ProgressBar.Visibility = Visibility.Visible;
 			var stat1 = string.Empty;
 			var stat2 = string.Empty;
 			var stat3 = string.Empty;
@@ -174,6 +175,7 @@ namespace RunLengthFeatures
 				stat3 = _calculator.GrayLevelUniformity(runLengths).ToString(NumberDisplayFormat);
 				stat4 = _calculator.PrimitiveLengthUniformity(runLengths).ToString(NumberDisplayFormat);
 			});
+			ProgressBar.Visibility = Visibility.Hidden;
 			Stat1.Text = stat1;
 			Stat2.Text = stat2;
 			Stat3.Text = stat3;
